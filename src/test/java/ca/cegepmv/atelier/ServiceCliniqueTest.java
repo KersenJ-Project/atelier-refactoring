@@ -37,6 +37,7 @@ class ServiceCliniqueTest {
 
     private ServiceClinique service;
     private Proprietaire julie;
+    private Proprietaire marco;
 
     @BeforeEach
     void setUp() {
@@ -95,16 +96,77 @@ class ServiceCliniqueTest {
     // ------------------------------------------------------------------
 
     // TODO 1 — genererFacture() : cas VACCIN (tarif de base 35$, sans urgence)
+    @Test
+    void genererFacture_vaccinSansUrgence(){
+        // Arrange
+        Visite consultation = new Visite(LocalDate.now(), "VACCIN", false, "Dr Gagnon", "Visite de routine");
+
+        // Act
+        String facture = service.genererFacture(julie, List.of(consultation));
+
+        // Assert
+        assertEquals("Facture pour Julie Tremblay — Sous-total: $35.00 — Total: $35.00", facture);
+    }
 
     // TODO 2 — genererFacture() : propriétaire avec 2 animaux ou plus (rabais de 10%
     //          appliqué, et présent dans le texte de la facture — vérifiez le format
     //          exact affiché par le code actuel avant d'écrire votre assertion)
+    @Test
+    void genererFacture_deuxAnimeaux_verifierFormatEtRabais(){
+        // Arrange
+        julie.ajouterAnimal(new Animal(2, "SAM", "CHIEN", LocalDate.of(2020, 3, 15)));
+        Visite consultation = new Visite(LocalDate.now(), "VACCIN", false, "Dr Gagnon", "Visite de routine");
+
+        // Act
+        String facture = service.genererFacture(julie, List.of(consultation));
+
+        // Assert
+        assertEquals("Facture pour Julie Tremblay — Sous-total: $35.00 — Remise fidélité: -10% — Total: $31.50", facture);
+    }
 
     // TODO 3 — genererFacture() : propriétaire avec un solde négatif (pénalité de 5%)
+    @Test
+    void genererFacture_proprietaires(){
+        // Arrange
+        Proprietaire marco = new Proprietaire("Marco", "Tremblay", "125 rue des Lilas", "Longueuil",
+        "J4G 1A1", "marco.tremblay@example.com", "450-556-0127", -10.00, 2);
+        marco.ajouterAnimal(new Animal(2, "Sam", "CHIEN", LocalDate.of(2020, 3, 15)));
+        Visite consultation = new Visite(LocalDate.now(), "VACCIN", false, "Dr Gagnon", "Visite de routine");
+
+        // Act
+        String facture = service.genererFacture(marco, List.of(consultation));
+
+        // Assert
+        assertEquals("Facture pour Marco Tremblay — Sous-total: $35.00 — Total: $36.75", facture);
+    }
 
     // TODO 4 — calculerRemiseFidelite() : plus d'un animal ET anneesClient >= 3 (0.15)
+    @Test
+    void calculerRemiseFidelite_deuxAnimeaux_plus3AnsClient() {
+        // Act
+        Proprietaire mathieu = new Proprietaire("Mathieu", "Tremblay", "125 rue des Lilas", "Longueuil",
+        "J4G 1A1", "mathieu.tremblay@example.com", "450-556-0127", 0.00, 10);
+        mathieu.ajouterAnimal(new Animal(1, "Sam", "CHIEN", LocalDate.of(2020, 3, 15)));
+        mathieu.ajouterAnimal(new Animal(2, "Carth", "CHAT", LocalDate.of(2020, 3, 15)));
+        double remise = service.calculerRemiseFidelite(mathieu);
+
+        // Assert
+        assertEquals(0.15, remise);
+    }
 
     // TODO 5 — calculerRemiseFidelite() : plus d'un animal ET anneesClient < 3 (0.10)
+    @Test
+    void calculerRemiseFidelite_deuxAnimeaux_2AnsClient() {
+        // Act
+        Proprietaire mathieu = new Proprietaire("Mathieu", "Tremblay", "125 rue des Lilas", "Longueuil",
+        "J4G 1A1", "mathieu.tremblay@example.com", "450-556-0127", 0.00, 2);
+        mathieu.ajouterAnimal(new Animal(1, "Sam", "CHIEN", LocalDate.of(2020, 3, 15)));
+        mathieu.ajouterAnimal(new Animal(2, "Carth", "CHAT", LocalDate.of(2020, 3, 15)));
+        double remise = service.calculerRemiseFidelite(mathieu);
+
+        // Assert
+        assertEquals(0.15, remise);
+    }
 
     // TODO 6 — calculerRemiseFidelite() : un seul animal ET anneesClient >= 5 (0.05)
 

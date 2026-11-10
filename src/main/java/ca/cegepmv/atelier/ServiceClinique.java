@@ -144,8 +144,7 @@ public class ServiceClinique {
      *
      * ⚠️ Aucun test ne couvre cette méthode actuellement.
      */
-    public String genererRapportPourVeterinaire(Veterinaire veterinaire, Proprietaire proprietaire,
-                                                 List<Visite> visites) {
+    public String genererRapportPourVeterinaire(Veterinaire veterinaire, Proprietaire proprietaire, List<Visite> visites) {
         StringBuilder sb = new StringBuilder();
         sb.append("Rapport du Dr ").append(veterinaire.getNom())
           .append(" (").append(veterinaire.getSpecialite()).append(")\n");
@@ -163,8 +162,7 @@ public class ServiceClinique {
      *
      * ⚠️ Aucun test ne couvre cette méthode actuellement.
      */
-    public Visite planifierVisite(int idAnimal, LocalDate date, String type, boolean urgence,
-                                   String nomVeterinaire, String notes, boolean envoyerRappelEmail) {
+    public Visite planifierVisite(int idAnimal, LocalDate date, String type, boolean urgence, String nomVeterinaire, String notes, boolean envoyerRappelEmail) {
         if (type == null || type.isBlank()) {
             throw new IllegalArgumentException("Le type de visite est requis");
         }
