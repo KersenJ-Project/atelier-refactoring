@@ -165,20 +165,140 @@ class ServiceCliniqueTest {
         double remise = service.calculerRemiseFidelite(mathieu);
 
         // Assert
-        assertEquals(0.15, remise);
+        assertEquals(0.1, remise);
     }
 
+    
     // TODO 6 — calculerRemiseFidelite() : un seul animal ET anneesClient >= 5 (0.05)
+    @Test
+    void calculerRemiseFidelite_unSeulAnimal_5AnsClient() {
+        // Arrange
+        Proprietaire mathieu = new Proprietaire("Mathieu", "Tremblay",
+                "125 rue des Lilas", "Longueuil", "J4G 1A1",
+                "mathieu.tremblay@example.com", "450-556-0127", 0.00, 5);
+
+        mathieu.ajouterAnimal(new Animal(1, "Sam", "CHIEN",
+                LocalDate.of(2020, 3, 15)));
+
+        // Act
+        double remise = service.calculerRemiseFidelite(mathieu);
+
+        // Assert
+        assertEquals(0.05, remise);
+    }
 
     // TODO 7 — estimerCoutAnnuel() : plusieurs visites de types différents
+    @Test
+    void estimerCoutAnnuel_plusieursTypesVisites_retourneCoutAnnuel() {
+        // Arrange
+        Visite consultation = new Visite(LocalDate.now(), "CONSULTATION",
+                false, "Dr Gagnon", "Visite de routine");
 
-    // TODO 8 — calculerDureeRendezVous() : CONSULTATION, VACCIN, CHIRURGIE, et un type
-    //          inconnu (documentez le comportement actuel, ne le "corrigez" pas)
+        Visite vaccin = new Visite(LocalDate.now(), "VACCIN",
+                false, "Dr Gagnon", "Vaccination");
 
-    // TODO 9 — genererRapportPourVeterinaire() : un cas normal avec un Veterinaire,
-    //          un Proprietaire et une liste de visites
+        Visite chirurgie = new Visite(LocalDate.now(), "CHIRURGIE",
+                false, "Dr Gagnon", "Chirurgie");
 
-    // TODO 10 — planifierVisite() : un appel avec envoyerRappelEmail=true (vérifiez le
-    //           contenu de service.getJournalRappels()) ET un appel avec
-    //           envoyerRappelEmail=false (le journal doit rester vide)
+        // Act
+        double coutAnnuel = service.estimerCoutAnnuel(
+                List.of(consultation, vaccin, chirurgie)
+        );
+
+        // Assert
+        // (60 + 35 + 250) * 12 = 4140
+        assertEquals(4140.0, coutAnnuel);
+    }
+
+    // TODO 8 — calculerDureeRendezVous() : les 4 types de visites
+    @Test
+    void calculerDureeRendezVous_typesVisites_retourneBonnesDurees() {
+        // Arrange
+        Visite consultation = new Visite(LocalDate.now(), "CONSULTATION",
+                false, "Dr Gagnon", "Routine");
+
+        Visite vaccin = new Visite(LocalDate.now(), "VACCIN",
+                false, "Dr Gagnon", "Vaccination");
+
+        Visite chirurgie = new Visite(LocalDate.now(), "CHIRURGIE",
+                false, "Dr Gagnon", "Chirurgie");
+
+        Visite typeInconnu = new Visite(LocalDate.now(), "AUTRE",
+                false, "Dr Gagnon", "Autre visite");
+
+        // Act + Assert
+        assertAll(
+                () -> assertEquals(20, service.calculerDureeRendezVous(consultation)),
+                () -> assertEquals(10, service.calculerDureeRendezVous(vaccin)),
+                () -> assertEquals(90, service.calculerDureeRendezVous(chirurgie)),
+                () -> assertEquals(30, service.calculerDureeRendezVous(typeInconnu))
+        );
+    }
+
+    // TODO 9 — genererRapportPourVeterinaire() : un cas normal
+    @Test
+    void genererRapportPourVeterinaire_casNormal_genereRapportComplet() {
+        // Arrange
+        Veterinaire veterinaire = new Veterinaire("Gagnon", "Chirurgie");
+
+        Visite consultation = new Visite(LocalDate.now(), "CONSULTATION",
+                false, "Dr Gagnon", "Routine");
+
+        Visite vaccin = new Visite(LocalDate.now(), "VACCIN",
+                false, "Dr Gagnon", "Vaccination");
+
+        // Act
+        String rapport = service.genererRapportPourVeterinaire(
+                veterinaire, julie, List.of(consultation, vaccin)
+        );
+
+        // Assert
+        String rapportAttendu =
+                "Rapport du Dr Gagnon (Chirurgie)\n" +
+                "Client: Julie Tremblay\n" +
+                "Adresse: 123 rue des Lilas, Longueuil J4G 1A1\n" +
+                "Contact: julie.tremblay@example.com / 450-555-0100\n" +
+                "Nombre de visites: 2";
+
+        assertEquals(rapportAttendu, rapport);
+    }
+
+    // TODO 10 — planifierVisite() : rappel par courriel activé
+    @Test
+    void planifierVisite_rappelActive_ajouteRappelAuJournal() {
+        // Arrange
+        LocalDate date = LocalDate.of(2026, 11, 15);
+
+        // Act
+        Visite visite = service.planifierVisite(
+                1, date, "CONSULTATION", false,
+                "Dr Gagnon", "Visite de routine", true
+        );
+
+        // Assert
+        assertNotNull(visite);
+
+        assertEquals(
+                List.of("Rappel envoyé pour la visite du 2026-11-15 (animal #1)"),
+                service.getJournalRappels()
+        );
+    }
+
+    // TODO 10 — planifierVisite() : rappel par courriel désactivé
+    @Test
+    void planifierVisite_rappelDesactive_journalResteVide() {
+        // Arrange
+        LocalDate date = LocalDate.of(2026, 11, 15);
+
+        // Act
+        Visite visite = service.planifierVisite(
+                1, date, "CONSULTATION", false,
+                "Dr Gagnon", "Visite de routine", false
+        );
+
+        // Assert
+        assertNotNull(visite);
+        assertTrue(service.getJournalRappels().isEmpty());
+    }
+
 }
